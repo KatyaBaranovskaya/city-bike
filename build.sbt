@@ -1,6 +1,14 @@
 name := "city-bike"
 
-version := "0.1"
+version in ThisBuild := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.12.2"
-        
+organization in ThisBuild := "com.itechart-group"
+
+scalaVersion in ThisBuild := "2.12.3"
+
+
+
+lazy val root = (project in file("."))
+  .settings(
+    name := "Main"
+  )
