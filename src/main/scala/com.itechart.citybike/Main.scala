@@ -3,6 +3,8 @@ package com.itechart.citybike
 import java.io.{File, PrintWriter}
 import java.time.LocalDateTime
 
+import com.itechart.citybike.parser.CsvParser.parseLine
+
 import scala.io.Source
 
 object Main {
@@ -10,8 +12,12 @@ object Main {
   def main(args: Array[String]): Unit = {
     val list = readFile("sources/201608-citibike-tripdata.csv")
 
+    val startDate = LocalDateTime.parse("2016-08-01T00:00:00")
+    val stopDate = LocalDateTime.parse("2016-08-03T00:00:00")
+
     val numberOfTrips = list.size
     val longestTrip = list.maxBy(_.tripDuration).tripDuration
+    val bikes = list.filter(_.startTime.isAfter(startDate)).filter(_.startTime.isBefore(stopDate)).groupBy(_.bikeId).size
 
     //    val genders = list.groupBy(_.gender).mapValues(_.size)
     //    val men = genders(1)
@@ -19,7 +25,7 @@ object Main {
     val manPer = (list.count(x => x.gender == 1).toDouble * 100) / numberOfTrips
     val womanPer = (list.count(x => x.gender == 2).toDouble * 100) / numberOfTrips
 
-    writeToFile("general-stats.cvs", Seq(numberOfTrips, longestTrip, manPer, womanPer))
+    writeToFile("general-stats.cvs", Seq(numberOfTrips, longestTrip, bikes, manPer, womanPer))
   }
 
   def readFile(fileName: String) = {
@@ -37,28 +43,6 @@ object Main {
     values.foreach(pw.println)
 
     pw.close()
-  }
-
-  def parseLine(line: String): BikeTrip = {
-    val cols = line.split(",").map(_.replace("\"", ""))
-    val bikeTrip = new BikeTrip()
-    bikeTrip.tripDuration = cols(0).toInt
-    //    bikeTrip.startTime = LocalDateTime.parse(cols(1))
-    //    bikeTrip.stopTime = LocalDateTime.parse(cols(2))
-    bikeTrip.startStationId = cols(3).toInt
-    bikeTrip.startStationName = cols(4)
-    bikeTrip.startStationLatitude = cols(5).toDouble
-    bikeTrip.startStationLongitude = cols(6).toDouble
-    bikeTrip.endStationId = cols(7).toInt
-    bikeTrip.endStationName = cols(8)
-    bikeTrip.endStationLatitude = cols(9).toDouble
-    bikeTrip.endStationLongitude = cols(10).toDouble
-    bikeTrip.bikeId = cols(11).toInt
-    bikeTrip.userType = cols(12)
-    //    bikeTrip.birthYear = cols(13).toInt
-    bikeTrip.gender = cols(14).toInt
-
-    bikeTrip
   }
 }
 

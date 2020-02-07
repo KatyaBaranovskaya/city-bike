@@ -1,6 +1,7 @@
 **City Bike** - Big Data Lab individual task
 
 This project is processing a bicycle ride information file. 
+
 Parses this file to get statistics about:
 - total number of trips;
 - the time of the longest trip;
