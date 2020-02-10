@@ -2,14 +2,15 @@ package com.itechart.citybike.parser
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import org.apache.logging.log4j.scala.Logging
 
-object CsvParser {
+object CsvParser extends Logging {
   var unProcessed = 0
 
   def parseLine(line: String): BikeTrip = {
     if (line.isEmpty) {
       unProcessed += 1
-//      logger.error("Empty line cannot be parsed")
+      logger.error("Empty line cannot be parsed")
       throw new RuntimeException("Empty line cannot be parsed")
     }
 
@@ -37,7 +38,7 @@ object CsvParser {
     } catch {
       case e: RuntimeException => {
         unProcessed += 1
-//        logger.error("Exception during parsing")
+        logger.error("Exception during parsing")
         throw new RuntimeException("Exception during parsing", e)
       }
     }

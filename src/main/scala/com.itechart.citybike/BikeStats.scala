@@ -1,7 +1,5 @@
 package com.itechart.citybike
 
-import java.time.Month
-
 import com.itechart.citybike.parser.BikeTrip
 import com.itechart.citybike.reader.CsvReader
 import com.itechart.citybike.writer.CsvWriter
