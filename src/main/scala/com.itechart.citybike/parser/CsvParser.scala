@@ -3,31 +3,68 @@ package com.itechart.citybike.parser
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.itechart.citybike.BikeTrip
-
 object CsvParser {
+  var unProcessed = 0
 
   def parseLine(line: String): BikeTrip = {
+    if (line.isEmpty) {
+      unProcessed += 1
+//      logger.error("Empty line cannot be parsed")
+      throw new RuntimeException("Empty line cannot be parsed")
+    }
+
+    try {
+      val cols = line.split(",").map(_.replace("\"", ""))
+      val bikeTrip = BikeTrip(
+        getInt(cols(0)),
+        getDate(cols(1)),
+        getDate(cols(2)),
+        getInt(cols(3)),
+        cols(4),
+        getDouble(cols(5)),
+        getDouble(cols(6)),
+        getInt(cols(7)),
+        cols(8),
+        getDouble(cols(9)),
+        getDouble(cols(10)),
+        getInt(cols(11)),
+        cols(12),
+        getInt(cols(13)),
+        getInt(cols(14))
+      )
+
+      bikeTrip
+    } catch {
+      case e: RuntimeException => {
+        unProcessed += 1
+//        logger.error("Exception during parsing")
+        throw new RuntimeException("Exception during parsing", e)
+      }
+    }
+  }
+
+  def getInt(value: String): Int = {
+    if (!value.isEmpty) {
+      value.toInt
+    } else 0
+  }
+
+  def getDouble(value: String): Double = {
+    if (!value.isEmpty) {
+      value.toDouble
+    } else 0
+  }
+
+  def getDate(value: String): LocalDateTime = {
     val formatter = DateTimeFormatter.ofPattern("M/d/yyyy HH:mm:ss")
-    val cols = line.split(",").map(_.replace("\"", ""))
 
-    val bikeTrip = new BikeTrip()
-    bikeTrip.tripDuration = cols(0).toInt
-    bikeTrip.startTime = LocalDateTime.parse(cols(1), formatter)
-    bikeTrip.stopTime = LocalDateTime.parse(cols(2), formatter)
-    bikeTrip.startStationId = cols(3).toInt
-    bikeTrip.startStationName = cols(4)
-    bikeTrip.startStationLatitude = cols(5).toDouble
-    bikeTrip.startStationLongitude = cols(6).toDouble
-    bikeTrip.endStationId = cols(7).toInt
-    bikeTrip.endStationName = cols(8)
-    bikeTrip.endStationLatitude = cols(9).toDouble
-    bikeTrip.endStationLongitude = cols(10).toDouble
-    bikeTrip.bikeId = cols(11).toInt
-    bikeTrip.userType = cols(12)
-//    bikeTrip.birthYear = cols(13).toInt
-    bikeTrip.gender = cols(14).toInt
-
-    bikeTrip
+    if (!value.isEmpty) {
+      LocalDateTime.parse(value, formatter)
+    } else null
   }
 }
+
+case class BikeTrip(tripDuration: Int, startTime: LocalDateTime, stopTime: LocalDateTime, startStationId: Int,
+                    startStationName: String, startStationLatitude: Double, startStationLongitude: Double,
+                    endStationId: Int, endStationName: String, endStationLatitude: Double, endStationLongitude: Double,
+                    bikeId: Int, userType: String, birthYear: Int, gender: Int)
