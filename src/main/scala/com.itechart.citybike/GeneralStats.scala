@@ -6,7 +6,7 @@ import com.itechart.citybike.parser.{BikeTrip, CsvParser}
 import com.itechart.citybike.reader.CsvReader
 import com.itechart.citybike.writer.CsvWriter
 
-object GeneralStats {
+object GeneralStats extends Logging {
 
   def main(args: Array[String]): Unit = {
     val reader = new CsvReader()
@@ -14,31 +14,62 @@ object GeneralStats {
 
     val startDate = LocalDateTime.parse("2016-08-01T00:00:00")
     val endDate = LocalDateTime.parse("2016-08-03T00:00:00")
-    val numberOfTrips = data.size
 
-    val generalStats = Seq(
-      "Total number of trips - " + numberOfTrips,
-      "The time of the longest trip - " + countLongestTrip(data),
-      "The number of bicycles used during the specified period - " + countBicycles(data, startDate, endDate),
-      "% of men using the service - " + countManPercentage(data, numberOfTrips) + "%",
-      "% of women using the service - " + countWomanPercentage(data, numberOfTrips) + "%",
-      "The number of records that cannot be processed - " + CsvParser.unProcessed,
-    )
+    val reader = new Reader()
+    val writer = new Writer()
+    val files = reader.getListOfFiles("/sources")
 
-    val writer = new CsvWriter()
-    writer.writeToFile("general-stats.cvs", generalStats)
+    val futureOperations: List[Future[Any]] = files.map(file => getNumberOfTrips(file))
+    val futureSequenceResults = Future.sequence(futureOperations)
+
+    futureSequenceResults.onComplete {
+      case Success(result) => {
+        writer.writeToFile("general-stats.cvs", Seq(result.size.toString))
+      }
+      case Failure(e) => logger.error("Exception during file processing", e)
+    }
+
+    Await.result(futureSequenceResults, Duration.Inf)
   }
 
-  def countLongestTrip(data: Seq[BikeTrip]): Int = data.maxBy(_.tripDuration).tripDuration
+  def getNumberOfTrips(fileName: String): Future[Int] = Future {
+    val reader = new Reader()
+    val data = reader.readFile("sources" + "/" + fileName).drop(1)
+    data.size
+  }
 
-  def countBicycles(data: Seq[BikeTrip], startDate: LocalDateTime, endDate: LocalDateTime): Int = data.filter(_.startTime.isAfter(startDate))
-    .filter(_.startTime.isBefore(endDate)).groupBy(_.bikeId).size
+  def getCountLongestTrip(fileName: String): Future[Int] = Future {
+    val reader = new Reader()
+    val data = reader.readFile("sources" + "/" + fileName).drop(1)
+    data.map(parseLine).maxBy(_.tripDuration).tripDuration
+  }
 
-  def countManPercentage(data: Seq[BikeTrip], numberOfTrips: Int): Double = (data.count(x => x.gender == 1).toDouble * 100) / numberOfTrips
+  def getCountBicycles(fileName: String, startDate: LocalDateTime, endDate: LocalDateTime): Future[Int] = Future {
+    val reader = new Reader()
+    val data = reader.readFile("sources" + "/" + fileName).drop(1)
+    data.map(parseLine).filter(_.startTime.isAfter(startDate)).filter(_.startTime.isBefore(endDate)).toTraversable.view.groupBy(_.bikeId).size
+  }
 
-  def countWomanPercentage(data: Seq[BikeTrip], numberOfTrips: Int): Double = (data.count(x => x.gender == 2).toDouble * 100) / numberOfTrips
+  def getCountManPercentage(fileName: String): Future[Double] = Future {
+    val reader = new Reader()
+    val data = reader.readFile("sources" + "/" + fileName).drop(1)
+    data.map(parseLine).count(x => x.gender == 1).toDouble
+  }
+
+  def getCountWomanPercentage(fileName: String): Future[Double] = Future {
+    val reader = new Reader()
+    val data = reader.readFile("sources" + "/" + fileName).drop(1)
+    data.map(parseLine).count(x => x.gender == 2).toDouble
+  }
 }
 
-//    val genders = data.groupBy(_.gender).mapValues(_.size)
-//    val manPer = genders(1)
-//    val womanPer = genders(2)
+//(data.count(x => x.gender == 1).toDouble * 100) / numberOfTrips
+
+//val generalStats = Seq(
+//      "Total number of trips - " + numberOfTrips,
+//      "The time of the longest trip - " + countLongestTrip(data),
+//      "The number of bicycles used during the specified period - " + countBicycles(data, startDate, endDate),
+//      "% of men using the service - " + countManPercentage(data, numberOfTrips) + "%",
+//      "% of women using the service - " + countWomanPercentage(data, numberOfTrips) + "%",
+//      "The number of records that cannot be processed - " + CsvParser.unProcessed,
+//    )
