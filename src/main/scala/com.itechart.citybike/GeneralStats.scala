@@ -2,16 +2,19 @@ package com.itechart.citybike
 
 import java.time.LocalDateTime
 
-import com.itechart.citybike.parser.{BikeTrip, CsvParser}
-import com.itechart.citybike.reader.CsvReader
-import com.itechart.citybike.writer.CsvWriter
+import com.itechart.citybike.parser.CsvParser.parseLine
+import com.itechart.citybike.reader.Reader
+import com.itechart.citybike.writer.Writer
+import org.apache.logging.log4j.scala.Logging
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object GeneralStats extends Logging {
 
   def main(args: Array[String]): Unit = {
-    val reader = new CsvReader()
-    val data = reader.readFile("sources/201608-citibike-tripdata.csv")
-
     val startDate = LocalDateTime.parse("2016-08-01T00:00:00")
     val endDate = LocalDateTime.parse("2016-08-03T00:00:00")
 

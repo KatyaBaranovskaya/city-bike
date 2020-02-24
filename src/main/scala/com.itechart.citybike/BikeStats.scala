@@ -9,16 +9,24 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
-object BikeStats {
+object BikeStats extends Logging {
 
   def main(args: Array[String]): Unit = {
-    val reader = new CsvReader()
-    val data = reader.readFile("sources/201608-citibike-tripdata.csv")
+    val reader = new Reader()
+    val files = reader.getListOfFiles("/sources")
 
-    val bikeStats = getBikeStats(data).map(x => x._1 + " - " + x._2._1 + " - " + x._2._2)
+    val futureOperations: List[Future[Any]] = files.map(file => getBikeStats(file))
+    val futureSequenceResults = Future.sequence(futureOperations)
 
-    val writer = new CsvWriter()
-    writer.writeToFile("bike-stats.cvs", bikeStats)
+    futureSequenceResults.onComplete {
+      case Success(results) => {
+        println("res")
+        results.foreach(x => print(x))
+      }
+      case Failure(e) => logger.error("Exception during file processing", e)
+    }
+
+    Await.result(futureSequenceResults, Duration.Inf)
   }
 
   def getBikeStats(fileName: String): Future[Seq[(Int, (Int, Int))]] = Future {
