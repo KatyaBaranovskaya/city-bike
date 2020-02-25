@@ -22,12 +22,12 @@ object GeneralStats extends Logging {
     val writer = new Writer()
     val files = reader.getListOfFiles("/sources")
 
-    val futureOperations: List[Future[Any]] = files.map(file => getNumberOfTrips(file))
+    val futureOperations: List[Future[Int]] = files.map(file => getNumberOfTrips(file))
     val futureSequenceResults = Future.sequence(futureOperations)
 
     futureSequenceResults.onComplete {
       case Success(result) => {
-        writer.writeToFile("general-stats.cvs", Seq(result.size.toString))
+        println("result: " + result.sum)
       }
       case Failure(e) => logger.error("Exception during file processing", e)
     }
@@ -50,7 +50,7 @@ object GeneralStats extends Logging {
   def getCountBicycles(fileName: String, startDate: LocalDateTime, endDate: LocalDateTime): Future[Int] = Future {
     val reader = new Reader()
     val data = reader.readFile("sources" + "/" + fileName).drop(1)
-    data.map(parseLine).filter(_.startTime.isAfter(startDate)).filter(_.startTime.isBefore(endDate)).toTraversable.view.groupBy(_.bikeId).size
+    data.map(parseLine).filter(_.startTime.isAfter(startDate)).filter(_.startTime.isBefore(endDate)).map(x => x.bikeId).toSet.size
   }
 
   def getCountManPercentage(fileName: String): Future[Double] = Future {
