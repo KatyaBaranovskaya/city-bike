@@ -11,10 +11,11 @@ class Reader extends Logging {
   def readFile(fileName: String): Iterator[String] = {
     try {
       Source.fromResource(fileName).getLines()
-    } catch {
+    }
+    catch {
       case e: FileNotFoundException => {
-        logger.error("Missing file exception")
-        throw new RuntimeException("Missing file exception", e)
+        logger.error("File not found exception")
+        throw new RuntimeException("File not found exception", e)
       }
       case e: IOException => {
         logger.error("IO Exception")

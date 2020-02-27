@@ -11,5 +11,10 @@ scalaVersion in ThisBuild := "2.12.3"
 lazy val root = (project in file("."))
   .settings(
     name := "Main",
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-api-scala_2.12" % "11.0"
+    libraryDependencies ++= Seq(
+      "org.apache.logging.log4j" % "log4j-api-scala_2.12" % "11.0",
+      "org.apache.logging.log4j" % "log4j-api" % "2.13.0",
+      "org.apache.logging.log4j" % "log4j-core" % "2.13.0",
+      "com.typesafe" % "config" % "1.4.0"
+    )
   )
