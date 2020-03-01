@@ -8,9 +8,13 @@ import scala.io.Source
 
 class Reader extends Logging {
 
-  def readFile(fileName: String): Iterator[String] = {
+  def readFile(fileName: String): List[String] = {
     try {
-      Source.fromResource(fileName).getLines()
+      val source = Source.fromResource(fileName)
+      val result = source.getLines().toList
+
+      source.close()
+      result
     }
     catch {
       case e: FileNotFoundException => {

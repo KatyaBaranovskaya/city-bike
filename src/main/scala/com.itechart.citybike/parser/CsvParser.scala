@@ -2,20 +2,24 @@ package com.itechart.citybike.parser
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.logging.log4j.scala.Logging
 
 object CsvParser extends Logging {
-  var unProcessed = 0
 
-  def parseLine(line: String): BikeTrip = {
+  private val config: Config = ConfigFactory.load("lightbend.conf")
+
+  private val DELIMITER = config.getString("delimiter")
+
+  def parseLine(line: String): Either[String, BikeTrip] = {
     if (line.isEmpty) {
-      unProcessed += 1
       logger.error("Empty line cannot be parsed")
-      throw new RuntimeException("Empty line cannot be parsed")
+      return Left("Empty line cannot be parsed")
     }
 
     try {
-      val cols = line.split(",").map(_.replace("\"", ""))
+      val cols = line.split(DELIMITER).map(_.replace("\"", ""))
       val bikeTrip = BikeTrip(
         getInt(cols(0)),
         getDate(cols(1)),
@@ -34,12 +38,11 @@ object CsvParser extends Logging {
         getInt(cols(14))
       )
 
-      bikeTrip
+      Right(bikeTrip)
     } catch {
-      case e: RuntimeException => {
-        unProcessed += 1
+      case ex: RuntimeException => {
         logger.error("Exception during parsing")
-        throw new RuntimeException("Exception during parsing", e)
+        Left("Exception during parsing")
       }
     }
   }

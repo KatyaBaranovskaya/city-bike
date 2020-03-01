@@ -1,24 +1,28 @@
 package com.itechart.citybike
 
+import com.itechart.citybike.parser.BikeTrip
 import com.itechart.citybike.parser.CsvParser.parseLine
 import com.itechart.citybike.reader.Reader
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.logging.log4j.scala.Logging
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
 object BikeStats extends Logging {
 
+  private val config: Config = ConfigFactory.load("lightbend.conf")
+
+  private val SOURCE_DIR = config.getString("source-directory")
+
   def main(args: Array[String]): Unit = {
     val reader = new Reader()
-    val files = reader.getListOfFiles("/sources")
+    val files = reader.getListOfFiles(s"/$SOURCE_DIR")
+    val data = files.map(file => reader.readFile(s"$SOURCE_DIR/$file").drop(1).map(parseLine).filter(_.isRight).map(_.right.get))
 
-    val futureOperations: List[Future[Any]] = files.map(file => getBikeStats(file))
-    val futureSequenceResults = Future.sequence(futureOperations)
-
-    futureSequenceResults.onComplete {
+    val countBikeStatsFutureSeq: List[Future[Seq[(Int, (Int, Int))]]] = data.map(countBikeStats)
+    Future.sequence(countBikeStatsFutureSeq).onComplete {
       case Success(results) => {
         println("res")
         results.foreach(x => print(x))
@@ -26,12 +30,10 @@ object BikeStats extends Logging {
       case Failure(e) => logger.error("Exception during file processing", e)
     }
 
-    Await.result(futureSequenceResults, Duration.Inf)
+    Thread.sleep(300000)
   }
 
-  def getBikeStats(fileName: String): Future[Seq[(Int, (Int, Int))]] = Future {
-    val reader = new Reader()
-    val data = reader.readFile("sources" + "/" + fileName).drop(1)
-    data.toStream.map(parseLine).groupBy(_.bikeId).mapValues(x => (x.size, x.map(_.tripDuration).sum)).toSeq.sortBy(_._2._2)(Ordering[Int].reverse)
+  def countBikeStats(data: List[BikeTrip]): Future[Seq[(Int, (Int, Int))]] = Future {
+    data.groupBy(_.bikeId).mapValues(x => (x.size, x.map(_.tripDuration).sum)).toSeq.sortBy(_._2._2)(Ordering[Int].reverse)
   }
 }
