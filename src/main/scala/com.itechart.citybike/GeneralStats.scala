@@ -11,7 +11,6 @@ import org.apache.logging.log4j.scala.Logging
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
 
 object GeneralStats extends Logging {
 
@@ -33,40 +32,41 @@ object GeneralStats extends Logging {
     }
 
     val countLongestTripFutureSeq: List[Future[Int]] = data.map(countLongestTrip)
-    Future.sequence(countLongestTripFutureSeq).onComplete {
-      case Success(result) => {
-        println("The time of the longest trip: " + result.max)
-      }
-      case Failure(e) => logger.error("Exception during file processing", e)
-    }
+    val longestTrip: Future[Int] = Future.sequence(countLongestTripFutureSeq).map(result => {
+      result.max
+    })
 
     val startDate = LocalDateTime.parse("2015-08-01T00:00:00")
     val endDate = LocalDateTime.parse("2017-08-03T00:00:00")
     val countBicyclesFutureSeq: List[Future[Set[Int]]] = data.map(countBicycles(_, startDate, endDate))
-    Future.sequence(countBicyclesFutureSeq).onComplete {
-      case Success(result) => {
-        println("The number of bicycles used during the specified period: " + result.flatten.toSet.size)
-      }
-      case Failure(e) => logger.error("Exception during file processing", e)
-    }
+    val bicycles: Future[Int] = Future.sequence(countBicyclesFutureSeq).map(result => {
+      result.flatten.toSet.size
+    })
 
     val countManFutureSeq: List[Future[Int]] = data.map(countMan)
-    Future.sequence(countManFutureSeq).onComplete {
-      case Success(result) => {
-        println("The number of men using the service: " + result.sum)
-      }
-      case Failure(e) => logger.error("Exception during file processing", e)
-    }
+    val mans: Future[Int] = Future.sequence(countManFutureSeq).map(result => {
+      result.sum
+    })
 
     val countWomanFutureSeq: List[Future[Int]] = data.map(countWoman)
-    Future.sequence(countWomanFutureSeq).onComplete {
-      case Success(result) => {
-        println("The number of women using the service: " + result.sum)
-      }
-      case Failure(e) => logger.error("Exception during file processing", e)
-    }
+    val womans: Future[Int] = Future.sequence(countWomanFutureSeq).map(result => {
+      result.sum
+    })
 
-    Thread.sleep(300000)
+    val manPer: Future[Double] = trips.flatMap(res => {
+      mans.map(res2 => {
+        res2.toDouble * 100 / res
+      })
+    })
+
+    val womanPer: Future[Double] = trips.flatMap(res => {
+      womans.map(res2 => {
+        res2.toDouble * 100 / res
+      })
+    })
+
+    val list: List[Future[AnyVal]] = List(trips, longestTrip, bicycles, manPer, womanPer)
+    Future.sequence(list)
   }
 
   def countTrips(data: List[BikeTrip]): Future[Int] = Future {
@@ -89,12 +89,3 @@ object GeneralStats extends Logging {
     data.count(x => x.gender == 2)
   }
 }
-
-//val generalStats = Seq(
-//      "Total number of trips - " + numberOfTrips,
-//      "The time of the longest trip - " + countLongestTrip(data),
-//      "The number of bicycles used during the specified period - " + countBicycles(data, startDate, endDate),
-//      "% of men using the service - " + countManPercentage(data, numberOfTrips) + "%",
-//      "% of women using the service - " + countWomanPercentage(data, numberOfTrips) + "%",
-//      "The number of records that cannot be processed - " + CsvParser.unProcessed,
-//    )

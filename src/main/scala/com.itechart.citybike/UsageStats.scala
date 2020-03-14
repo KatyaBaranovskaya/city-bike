@@ -10,7 +10,6 @@ import org.apache.logging.log4j.scala.Logging
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
 
 object UsageStats extends Logging {
 
@@ -24,15 +23,10 @@ object UsageStats extends Logging {
     val data = files.map(file => reader.readFile(s"$SOURCE_DIR/$file").drop(1).map(parseLine).filter(_.isRight).map(_.right.get))
 
     val countTripsByMonthFutureSeq: List[Future[Map[Month, Int]]] = data.map(countTripsByMonth)
-    Future.sequence(countTripsByMonthFutureSeq).onComplete {
-      case Success(results) => {
-        println("res")
-        results.foreach(x => print(x))
-      }
-      case Failure(e) => logger.error("Exception during file processing", e)
-    }
-
-    Thread.sleep(300000)
+    val result = Future.sequence(countTripsByMonthFutureSeq).map(result => {
+      result.flatten.groupBy(_._1).mapValues(_.map(_._2).sum)
+    })
+    result
   }
 
   def countTripsByMonth(data: List[BikeTrip]): Future[Map[Month, Int]] = Future {
