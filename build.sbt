@@ -15,6 +15,7 @@ lazy val root = (project in file("."))
       "org.apache.logging.log4j" % "log4j-api-scala_2.12" % "11.0",
       "org.apache.logging.log4j" % "log4j-api" % "2.13.0",
       "org.apache.logging.log4j" % "log4j-core" % "2.13.0",
-      "com.typesafe" % "config" % "1.4.0"
+      "com.typesafe" % "config" % "1.4.0",
+      "org.scalatest" %% "scalatest" % "3.0.8" % "test"
     )
   )

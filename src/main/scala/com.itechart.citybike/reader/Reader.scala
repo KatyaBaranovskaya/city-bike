@@ -17,13 +17,13 @@ class Reader extends Logging {
       result
     }
     catch {
-      case e: FileNotFoundException => {
+      case e: NullPointerException => {
         logger.error("File not found exception")
         throw new RuntimeException("File not found exception", e)
       }
-      case e: IOException => {
-        logger.error("IO Exception")
-        throw new RuntimeException("IO Exception", e)
+      case e: RuntimeException => {
+        logger.error("Exception during reading")
+        throw new RuntimeException("Exception during reading", e)
       }
     }
   }

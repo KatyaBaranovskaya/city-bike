@@ -1,0 +1,7 @@
+"tripduration","starttime","stoptime","start station id","start station name","start station latitude","start station longitude","end station id","end station name","end station latitude","end station longitude","bikeid","usertype","birth year","gender"
+"704","7/1/2016 00:00:02","7/1/2016 00:11:47","459","W 20 St & 11 Ave","40.746745","-74.007756","347","Greenwich St & W Houston St","40.728846","-74.008591","17431","Customer","","0"
+"492","7/1/2016 00:00:18","7/1/2016 00:08:31","293","Lafayette St & E 8 St","40.73028666","-73.9907647","466","W 25 St & 6 Ave","40.74395411","-73.99144871","24159","Subscriber","1984","1"
+"191","7/1/2016 00:00:19","7/1/2016 00:03:31","3090","N 8 St & Driggs Ave","40.71774592","-73.95600096","3107","Bedford Ave & Nassau Ave","40.72311651","-73.95212324","16345","Subscriber","1986","2"
+"687","7/1/2016 00:00:24","7/1/2016 00:11:52","459","W 20 St & 11 Ave","40.746745","-74.007756","347","Greenwich St & W Houston St","40.728846","-74.008591","25210","Customer","","0"
+"609","7/1/2016 00:00:31","7/1/2016 00:10:40","284","Greenwich Ave & 8 Ave","40.7390169121","-74.0026376103","212","W 16 St & The High Line","40.74334935","-74.00681753","15514","Customer","","0"
+"672","7/1/2016 00:00:45","7/1/2016 00:11:57","459","W 20 St & 11 Ave","40.746745","-74.007756","347","Greenwich St & W Houston St","40.728846","-74.008591","15444","Subscriber","1991","1"
